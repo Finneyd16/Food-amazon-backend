@@ -3,6 +3,7 @@ const app = express();
 const mongoose = require('mongoose');
 const categories = require('./routes/categories');
 const products = require('./routes/products');
+const customers = require('./routes/customers');
 
 
 
@@ -14,7 +15,7 @@ mongoose.connect("mongodb://localhost/fooddatabase")
 app.use(express.json());
 app.use('/api/fooddocuments/categories', categories);
 app.use('/api/fooddocuments/products', products);
-
+app.use('/api/fooddocuments/customers', customers);
 
 
 
