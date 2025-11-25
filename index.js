@@ -34,5 +34,5 @@ app.use('/api/fooddocuments/auth', auth);
 
 
 
-const port = process.env.port || 3001;
+const port = process.env.port || 3002;
 app.listen(port, console.log(`listening on port ${port}...`));

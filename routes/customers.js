@@ -4,6 +4,7 @@ const { route } = require('./categories');
 const router = express.Router();
 
 
+
 router.get('/get-all-customers', async (req, res) => {
     const customers = await Customer.find().sort('name');
     res.send(customers);
