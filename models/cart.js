@@ -1,0 +1,81 @@
+const Joi = require("joi");
+const mongoose = require("mongoose");
+
+const cartSchema = new mongoose.Schema(
+  {
+    customer: {
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+      },
+      name: {
+        type: String,
+        required: true,
+      },
+      email: {
+        type: String,
+        required: true,
+      },
+    },
+
+    cartItems: [
+      {
+        product: {
+          _id: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+          },
+          name: {
+            type: String,
+            required: true,
+          },
+          price: {
+            type: Number,
+            required: true,
+          },
+          productImg: {
+            type: String,
+          },
+        },
+        quantity: {
+          type: Number,
+          required: true,
+          min: 1,
+        },
+        subtotal: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+      },
+    ],
+
+    totalAmount: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+    },
+
+    appliedCoupon: {
+      code: String,
+      discountAmount: Number,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Cart = mongoose.model("Cart", cartSchema);
+
+function validateCartItem(item) {
+  const schema = Joi.object({
+    productId: Joi.string().required(),
+    quantity: Joi.number().min(1).required(),
+  });
+  return schema.validate(item);
+}
+
+module.exports.Cart = Cart;
+module.exports.validateCartItem = validateCartItem;

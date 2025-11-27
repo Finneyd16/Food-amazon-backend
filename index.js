@@ -7,6 +7,11 @@ const customers = require('./routes/customers');
 const users = require('./routes/users');
 const auth = require('./routes/auth');
 const config = require('config');
+const orders = require('./routes/orders');
+const coupons = require('./routes/coupons');
+const carts = require('./routes/carts');
+
+
 
 if (!config.get('jwtPrivateKey')){
     console.error("FATAL ERROR: jwtPrivateKey is not defined.");
@@ -29,10 +34,15 @@ app.use('/api/fooddocuments/products', products);
 app.use('/api/fooddocuments/customers', customers);
 app.use('/api/fooddocuments/users', users);
 app.use('/api/fooddocuments/auth', auth);
+app.use('/api/fooddocuments/orders', orders);
+app.use('/api/fooddocuments/coupons', coupons);
+app.use('/api/fooddocuments/carts',carts);
 
 
 
 
 
-const port = process.env.port || 3002;
+
+
+const port = process.env.port || 3001;
 app.listen(port, console.log(`listening on port ${port}...`));
