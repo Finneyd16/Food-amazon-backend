@@ -44,7 +44,7 @@ const cartSchema = new mongoose.Schema(
         },
         subtotal: {
           type: Number,
-          required: true,
+          default: 0,
           min: 0,
         },
       },
@@ -52,7 +52,6 @@ const cartSchema = new mongoose.Schema(
 
     totalAmount: {
       type: Number,
-      required: true,
       default: 0,
       min: 0,
     },
@@ -67,10 +66,27 @@ const cartSchema = new mongoose.Schema(
   }
 );
 
+// ✅ AUTO-CALCULATE SUBTOTALS AND TOTAL
+cartSchema.pre("save", function (next) {
+  // Calculate each item's subtotal
+  this.cartItems.forEach((item) => {
+    item.subtotal = item.product.price * item.quantity;
+  });
+
+  // Calculate total amount
+  this.totalAmount = this.cartItems.reduce(
+    (sum, item) => sum + item.subtotal,
+    0
+  );
+
+  next();
+});
+
 const Cart = mongoose.model("Cart", cartSchema);
 
 function validateCartItem(item) {
   const schema = Joi.object({
+    customerId: Joi.string().required(),
     productId: Joi.string().required(),
     quantity: Joi.number().min(1).required(),
   });
