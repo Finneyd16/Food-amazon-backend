@@ -10,6 +10,11 @@ const config = require('config');
 const orders = require('./routes/orders');
 const coupons = require('./routes/coupons');
 const carts = require('./routes/carts');
+const reviews = require('./routes/reviews');
+const wishlists = require('./routes/wishlists');
+const notifications = require('./routes/notifications');
+const dashboard = require('./routes/dashboard');
+
 
 
 
@@ -37,6 +42,10 @@ app.use('/api/fooddocuments/auth', auth);
 app.use('/api/fooddocuments/orders', orders);
 app.use('/api/fooddocuments/coupons', coupons);
 app.use('/api/fooddocuments/carts',carts);
+app.use('/api/fooddocuments/reviews',reviews);
+app.use('/api/fooddocuments/wishlists',wishlists);
+app.use('/api/fooddocuments/notifications',notifications);
+app.use ('/api/fooddocuments/dashboard',dashboard);
 
 
 
@@ -44,5 +53,5 @@ app.use('/api/fooddocuments/carts',carts);
 
 
 
-const port = process.env.port || 3001;
+const port = process.env.PORT || 3001;
 app.listen(port, console.log(`listening on port ${port}...`));
