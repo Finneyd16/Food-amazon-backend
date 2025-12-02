@@ -7,22 +7,18 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 
-// GET ALL REVIEWS
 router.get("/get-all-reviews", async (req, res) => {
   const reviews = await Review.find().sort("-createdAt");
   res.send(reviews);
 });
 
-// CREATE REVIEW
 router.post("/create-review", async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
-  // Get customer
   const customer = await Customer.findById(req.body.customerId);
   if (!customer) return res.status(400).send("Invalid customer.");
 
-  // Get product
   const product = await Product.findById(req.body.productId);
   if (!product) return res.status(400).send("Invalid product.");
 
@@ -80,7 +76,6 @@ async function updateProductRating(productId) {
   });
 }
 
-// GET REVIEWS BY PRODUCT
 router.get("/get-product-reviews/:productId", async (req, res) => {
   const reviews = await Review.find({
     "product._id": req.params.productId,
@@ -93,7 +88,6 @@ router.get("/get-product-reviews/:productId", async (req, res) => {
   res.send(reviews);
 });
 
-// GET REVIEWS BY CUSTOMER
 router.get("/get-customer-reviews/:customerId", async (req, res) => {
   const reviews = await Review.find({
     "customer._id": req.params.customerId,
@@ -106,7 +100,6 @@ router.get("/get-customer-reviews/:customerId", async (req, res) => {
   res.send(reviews);
 });
 
-// UPDATE REVIEW
 router.put("/update-review/:id", async (req, res) => {
   const { rating, reviewText } = req.body;
 
@@ -141,7 +134,6 @@ router.put("/update-review/:id", async (req, res) => {
   });
 });
 
-// DELETE REVIEW
 router.delete("/delete-review/:id", [auth, admin], async (req, res) => {
   const review = await Review.findByIdAndDelete(req.params.id);
   if (!review)
@@ -156,7 +148,6 @@ router.delete("/delete-review/:id", [auth, admin], async (req, res) => {
   });
 });
 
-// MARK REVIEW AS HELPFUL
 router.post("/mark-helpful/:id", async (req, res) => {
   let review = await Review.findById(req.params.id);
   if (!review) return res.status(404).send("Review not found.");

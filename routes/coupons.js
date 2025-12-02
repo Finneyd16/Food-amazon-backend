@@ -44,7 +44,6 @@ router.get("/get-single-coupon/:id", [auth, admin], async (req, res) => {
   res.send(coupon);
 });
 
-// VALIDATE COUPON (For customers to apply)
 router.post("/validate-coupon", async (req, res) => {
   const { code, orderAmount } = req.body;
 
@@ -105,7 +104,6 @@ router.post("/validate-coupon", async (req, res) => {
   });
 });
 
-// UPDATE COUPON
 router.put("/update-coupon/:id", [auth, admin], async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
@@ -135,7 +133,6 @@ router.put("/update-coupon/:id", [auth, admin], async (req, res) => {
   });
 });
 
-// DELETE COUPON
 router.delete("/delete-coupon/:id", [auth, admin], async (req, res) => {
   const coupon = await Coupon.findByIdAndDelete(req.params.id);
   if (!coupon)

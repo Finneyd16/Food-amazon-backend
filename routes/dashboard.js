@@ -6,36 +6,28 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 
-// GET DASHBOARD OVERVIEW
 router.get("/overview", [auth, admin], async (req, res) => {
   try {
-    // Total Revenue
     const totalRevenue = await Order.aggregate([
       { $match: { paymentStatus: "Paid" } },
       { $group: { _id: null, total: { $sum: "$totalAmount" } } },
     ]);
 
-    // Total Orders
     const totalOrders = await Order.countDocuments();
 
-    // Total Customers
     const totalCustomers = await Customer.countDocuments();
 
-    // Total Products
     const totalProducts = await Product.countDocuments();
 
-    // Low Stock Products
     const lowStockProducts = await Product.find({
       $expr: { $lte: ["$quantity", "$thresholdValue"] },
       quantity: { $gt: 0 },
     }).countDocuments();
 
-    // Out of Stock Products
     const outOfStockProducts = await Product.find({
       quantity: 0,
     }).countDocuments();
 
-    // Pending Orders
     const pendingOrders = await Order.countDocuments({
       orderStatus: "Pending",
     });
@@ -138,7 +130,6 @@ router.get("/low-stock-alerts", [auth, admin], async (req, res) => {
   }
 });
 
-// GET RECENT ORDERS
 router.get("/recent-orders", [auth, admin], async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -154,7 +145,6 @@ router.get("/recent-orders", [auth, admin], async (req, res) => {
   }
 });
 
-// GET REVENUE BY CATEGORY
 router.get("/revenue-by-category", [auth, admin], async (req, res) => {
   try {
     const revenueByCategory = await Order.aggregate([

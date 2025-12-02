@@ -48,7 +48,7 @@ const orderSchema = new mongoose.Schema(
         },
         subtotal: {
           type: Number,
-          default:0,
+          default: 0,
           min: 0,
         },
       },
@@ -102,10 +102,24 @@ const orderSchema = new mongoose.Schema(
       default: "Pending",
     },
 
-    paymentMethod: {
+    paymentReference: {
+      type: String, // Paystack's unique reference
+      required: false,
+    },
+    paymentGateway: {
       type: String,
-      enum: ["Cash on Delivery", "Card", "Bank Transfer"],
-      default: "Cash on Delivery",
+      default: "paystack",
+    },
+    transactionId: {
+      type: String, // Paystack transaction id
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
     },
   },
   {

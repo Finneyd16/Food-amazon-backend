@@ -57,14 +57,21 @@ router.post("/forgot-password", async (req, res) => {
   if (!user)
     return res.status(400).send("User with this email does not exist.");
 
-  // Generate a reset token
+  // Generate token & hash it before saving
   const resetToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
 
-  user.resetPasswordToken = resetToken;
+  user.resetPasswordToken = hashedToken;
   user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-
   await user.save();
 
+  // Build reset link
+  const resetLink = `${req.protocol}://${req.get("host" )}/api/users/reset-password/${resetToken}`;
+
+  console.log("RESET LINK:", resetLink);
 
   res.send("Password reset link has been sent to your email.");
 });
@@ -80,6 +87,9 @@ router.post("/reset-password/:token", async (req, res) => {
   const { error } = schema.validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
+  // Hash token and compare with DB
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
   const user = await User.findOne({
     resetPasswordToken: token,
     resetPasswordExpires: { $gt: Date.now() },
@@ -91,7 +101,7 @@ router.post("/reset-password/:token", async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(req.body.password, salt);
 
-  // Clear reset token fields and increment tokenVersion
+  // Clear reset fields and invalidate old tokens
   user.resetPasswordToken = null;
   user.resetPasswordExpires = null;
   user.tokenVersion += 1;

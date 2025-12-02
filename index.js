@@ -14,6 +14,7 @@ const reviews = require('./routes/reviews');
 const wishlists = require('./routes/wishlists');
 const notifications = require('./routes/notifications');
 const dashboard = require('./routes/dashboard');
+const cors = require('cors');
 
 
 
@@ -46,6 +47,7 @@ app.use('/api/fooddocuments/reviews',reviews);
 app.use('/api/fooddocuments/wishlists',wishlists);
 app.use('/api/fooddocuments/notifications',notifications);
 app.use ('/api/fooddocuments/dashboard',dashboard);
+app.use(cors());
 
 
 

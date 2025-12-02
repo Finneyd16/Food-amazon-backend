@@ -66,14 +66,13 @@ const cartSchema = new mongoose.Schema(
   }
 );
 
-// ✅ AUTO-CALCULATE SUBTOTALS AND TOTAL
+// AUTO-CALCULATE SUBTOTALS AND TOTAL
 cartSchema.pre("save", function (next) {
   // Calculate each item's subtotal
   this.cartItems.forEach((item) => {
     item.subtotal = item.product.price * item.quantity;
   });
 
-  // Calculate total amount
   this.totalAmount = this.cartItems.reduce(
     (sum, item) => sum + item.subtotal,
     0

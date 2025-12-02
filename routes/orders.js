@@ -6,22 +6,18 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 
-// GET ALL ORDERS
 router.get("/get-all-orders", [auth, admin], async (req, res) => {
   const orders = await Order.find().sort("-createdAt");
   res.send(orders);
 });
 
-// CREATE ORDER
 router.post("/create-order", async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
-  // Get customer details
   const customer = await Customer.findById(req.body.customerId);
   if (!customer) return res.status(400).send("Invalid customer.");
 
-  // Process order items
   let orderItems = [];
 
   for (let item of req.body.orderItems) {
@@ -29,12 +25,10 @@ router.post("/create-order", async (req, res) => {
     if (!product)
       return res.status(400).send(`Invalid product: ${item.productId}`);
 
-    // Check if product is in stock
     if (!product.productInStock) {
       return res.status(400).send(`Product ${product.name} is out of stock.`);
     }
 
-    // Check if enough quantity available
     if (product.quantity < item.quantity) {
       return res.status(400).send(
           `Not enough stock for ${product.name}. Available: ${product.quantity}`
@@ -51,12 +45,10 @@ router.post("/create-order", async (req, res) => {
       quantity: item.quantity,
     });
 
-    // Update product quantity
     product.quantity -= item.quantity;
     await product.save();
   }
 
-  // Create order (pre-save hook will calculate subtotals and total)
   let order = new Order({
     customer: {
       _id: customer._id,
@@ -79,7 +71,6 @@ router.post("/create-order", async (req, res) => {
   res.send(order);
 });
 
-// GET SINGLE ORDER
 router.get("/get-single-order/:id", async (req, res) => {
   const order = await Order.findById(req.params.id);
   if (!order)
@@ -88,7 +79,6 @@ router.get("/get-single-order/:id", async (req, res) => {
   res.send(order);
 });
 
-// UPDATE ORDER STATUS
 router.put("/update-order-status/:id", [auth, admin], async (req, res) => {
   const { orderStatus, paymentStatus } = req.body;
 
@@ -124,7 +114,6 @@ router.put("/update-order-status/:id", [auth, admin], async (req, res) => {
   });
 });
 
-// DELETE ORDER
 router.delete("/delete-order/:id", [auth, admin], async (req, res) => {
   const order = await Order.findByIdAndDelete(req.params.id);
   if (!order)
@@ -136,7 +125,6 @@ router.delete("/delete-order/:id", [auth, admin], async (req, res) => {
   });
 });
 
-// GET ORDERS BY CUSTOMER
 router.get("/get-customer-orders/:customerId", async (req, res) => {
   const orders = await Order.find({
     "customer._id": req.params.customerId,
@@ -149,7 +137,6 @@ router.get("/get-customer-orders/:customerId", async (req, res) => {
   res.send(orders);
 });
 
-// GET ORDERS BY STATUS
 router.get("/get-orders-by-status/:status", [auth, admin], async (req, res) => {
   const orders = await Order.find({ orderStatus: req.params.status }).sort(
     "-createdAt"
@@ -161,5 +148,49 @@ router.get("/get-orders-by-status/:status", [auth, admin], async (req, res) => {
 
   res.send(orders);
 });
+
+
+// POST /api/orders/confirm
+router.post('/confirm', async (req, res) => {
+    const { reference } = req.body;
+    const response = await axios.get(
+        `https://api.paystack.co/transaction/verify/${reference}`,
+        {
+            headers: {
+                Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
+            }
+        }
+    );
+    const data = response.data.data;
+    if (data.status === "success") {
+        const order = await Order.findOneAndUpdate(
+            { paymentReference: reference },
+            { paymentStatus: "paid", transactionId: data.id },
+            { new: true }
+        );
+        return res.send({ success: true, order });
+    } else {
+        return res.status(400).send({ success: false, message: "Payment failed" });
+    }
+});
+
+
+// POST /api/paystack/webhook
+router.post('/webhook', express.json({ type: 'application/json' }), async (req, res) => {
+    const event = req.body;
+    if (event.event === "charge.success") {
+        const reference = event.data.reference;
+        await Order.findOneAndUpdate(
+            { paymentReference: reference },
+            { paymentStatus: "paid", transactionId: event.data.id }
+        );
+    }
+    res.sendStatus(200);
+});
+
+
+
+
+
 
 module.exports = router;

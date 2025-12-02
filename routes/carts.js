@@ -4,17 +4,13 @@ const { Product } = require("../models/product");
 const express = require("express");
 const router = express.Router();
 
-// Helper function to calculate cart total
-function calculateCartTotal(cartItems) {
-  return cartItems.reduce((total, item) => total + item.subtotal, 0);
-}
+
 
 // GET CUSTOMER CART
 router.get("/get-cart/:customerId", async (req, res) => {
   let cart = await Cart.findOne({ "customer._id": req.params.customerId });
 
   if (!cart) {
-    // Return empty cart if none exists
     return res.json({
       cartItems: [],
       totalAmount: 0,
@@ -25,7 +21,6 @@ router.get("/get-cart/:customerId", async (req, res) => {
   res.send(cart);
 });
 
-// ADD ITEM TO CART - SIMPLIFIED
 router.post("/add-to-cart", async (req, res) => {
   const { error } = validateCartItem(req.body);
   if (error) return res.status(400).send(error.details[0].message);
@@ -81,11 +76,10 @@ router.post("/add-to-cart", async (req, res) => {
     });
   }
 
-  cart = await cart.save(); // ✅ pre-save hook calculates everything
+  cart = await cart.save(); 
   res.send(cart);
 });
 
-// UPDATE CART ITEM - SIMPLIFIED
 router.put("/update-cart-item/:customerId/:productId", async (req, res) => {
   const { quantity } = req.body;
 
@@ -107,12 +101,11 @@ router.put("/update-cart-item/:customerId/:productId", async (req, res) => {
   // Update quantity only - subtotal calculated by pre-save
   cart.cartItems[itemIndex].quantity = quantity;
 
-  cart = await cart.save(); // ✅ pre-save hook calculates everything
+  cart = await cart.save(); 
   res.send(cart);
 });
 
 
-// REMOVE ITEM FROM CART
 router.delete("/remove-from-cart/:customerId/:productId", async (req, res) => {
   const { customerId, productId } = req.params;
 
@@ -131,7 +124,6 @@ router.delete("/remove-from-cart/:customerId/:productId", async (req, res) => {
 });
 
 
-// CLEAR ENTIRE CART
 router.delete("/clear-cart/:customerId", async (req, res) => {
   const { customerId } = req.params;
 
@@ -141,7 +133,6 @@ router.delete("/clear-cart/:customerId", async (req, res) => {
   cart.cartItems = [];
   cart.appliedCoupon = undefined;
 
-  // totalAmount becomes 0 automatically
   cart = await cart.save();
 
   res.json({
@@ -151,7 +142,6 @@ router.delete("/clear-cart/:customerId", async (req, res) => {
   });
 });
 
-// APPLY COUPON TO CART
 router.post("/apply-coupon/:customerId", async (req, res) => {
   const { customerId } = req.params;
   const { couponCode } = req.body;

@@ -4,7 +4,6 @@ const { Product } = require("../models/product");
 const express = require("express");
 const router = express.Router();
 
-// GET CUSTOMER WISHLIST
 router.get("/get-wishlist/:customerId", async (req, res) => {
   let wishlist = await Wishlist.findOne({
     "customer._id": req.params.customerId,
@@ -20,7 +19,6 @@ router.get("/get-wishlist/:customerId", async (req, res) => {
   res.send(wishlist);
 });
 
-// ADD ITEM TO WISHLIST
 router.post("/add-to-wishlist", async (req, res) => {
   const { error } = validateWishlistItem(req.body);
   if (error) return res.status(400).send(error.details[0].message);
@@ -74,7 +72,6 @@ router.post("/add-to-wishlist", async (req, res) => {
   res.send(wishlist);
 });
 
-// REMOVE ITEM FROM WISHLIST
 router.delete(
   "/remove-from-wishlist/:customerId/:productId",
   async (req, res) => {
@@ -92,7 +89,6 @@ router.delete(
   }
 );
 
-// CLEAR ENTIRE WISHLIST
 router.delete("/clear-wishlist/:customerId", async (req, res) => {
   let wishlist = await Wishlist.findOne({
     "customer._id": req.params.customerId,
@@ -108,7 +104,6 @@ router.delete("/clear-wishlist/:customerId", async (req, res) => {
   });
 });
 
-// MOVE ITEM FROM WISHLIST TO CART
 router.post("/move-to-cart/:customerId/:productId", async (req, res) => {
   const { quantity } = req.body;
 
@@ -134,7 +129,6 @@ router.post("/move-to-cart/:customerId/:productId", async (req, res) => {
   wishlist.items.splice(itemIndex, 1);
   await wishlist.save();
 
-  // Return product info for frontend to add to cart
   res.json({
     status: "success",
     message: "Item ready to add to cart",
@@ -143,7 +137,6 @@ router.post("/move-to-cart/:customerId/:productId", async (req, res) => {
   });
 });
 
-// CHECK IF PRODUCT IS IN WISHLIST
 router.get("/check-wishlist/:customerId/:productId", async (req, res) => {
   const wishlist = await Wishlist.findOne({
     "customer._id": req.params.customerId,
@@ -160,7 +153,6 @@ router.get("/check-wishlist/:customerId/:productId", async (req, res) => {
   res.json({ inWishlist });
 });
 
-// GET WISHLIST COUNT
 router.get("/wishlist-count/:customerId", async (req, res) => {
   const wishlist = await Wishlist.findOne({
     "customer._id": req.params.customerId,

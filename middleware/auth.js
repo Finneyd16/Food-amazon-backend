@@ -9,7 +9,6 @@ async function auth(req, res, next) {
   try {
     const decoded = jwt.verify(token, config.get("jwtPrivateKey"));
 
-    // Fetch user from DB
     const user = await User.findById(decoded._id);
     if (!user) return res.status(400).send("Invalid token: user not found.");
 
