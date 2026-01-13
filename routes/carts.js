@@ -80,47 +80,73 @@ router.post("/add-to-cart", async (req, res) => {
   res.send(cart);
 });
 
+
 router.put("/update-cart-item/:customerId/:productId", async (req, res) => {
-  const { quantity } = req.body;
+  try {
+    const { quantity } = req.body;
 
-  if (!quantity || quantity < 1) {
-    return res.status(400).send("Quantity must be at least 1.");
+   
+    if (!quantity || quantity < 1) {
+      return res.status(400).json({
+        error: "Quantity must be at least 1",
+      });
+    }
+
+    // Find cart
+    const cart = await Cart.findOne({ "customer._id": req.params.customerId });
+    if (!cart) {
+      return res.status(404).json({ error: "Cart not found" });
+    }
+
+    // Find item
+    const itemIndex = cart.cartItems.findIndex(
+      (item) => item.product._id.toString() === req.params.productId
+    );
+
+    if (itemIndex === -1) {
+      return res.status(404).json({ error: "Product not found in cart" });
+    }
+
+    // Update quantity
+    cart.cartItems[itemIndex].quantity = quantity;
+
+   
+    await cart.save();
+
+   
+    res.json({
+      success: true,
+      cart,
+    });
+  } catch (error) {
+    console.error("Update cart error:", error);
+    res.status(500).json({ error: "Failed to update cart" });
   }
-
-  let cart = await Cart.findOne({ "customer._id": req.params.customerId });
-  if (!cart) return res.status(404).send("Cart not found.");
-
-  const itemIndex = cart.cartItems.findIndex(
-    (item) => item.product._id.toString() === req.params.productId
-  );
-
-  if (itemIndex === -1) {
-    return res.status(404).send("Product not found in cart.");
-  }
-
-  // Update quantity only - subtotal calculated by pre-save
-  cart.cartItems[itemIndex].quantity = quantity;
-
-  cart = await cart.save(); 
-  res.send(cart);
 });
 
 
 router.delete("/remove-from-cart/:customerId/:productId", async (req, res) => {
-  const { customerId, productId } = req.params;
+  try {
+    const { customerId, productId } = req.params;
 
-  let cart = await Cart.findOne({ "customer._id": customerId });
-  if (!cart) return res.status(404).send("Cart not found.");
+    const cart = await Cart.findOne({ "customer._id": customerId });
+    if (!cart) {
+      return res.status(404).json({ error: "Cart not found" });
+    }
 
-  // Remove the product
-  cart.cartItems = cart.cartItems.filter(
-    (item) => item.product._id.toString() !== productId
-  );
+    // Remove the product
+    cart.cartItems = cart.cartItems.filter(
+      (item) => item.product._id.toString() !== productId
+    );
 
-  // Pre-save hook will recalc subtotal + totalAmount
-  cart = await cart.save();
+    // Save (pre-save hook will recalc subtotal + totalAmount)
+    await cart.save();
 
-  res.send(cart);
+    res.json({ success: true, cart });
+  } catch (error) {
+    console.error("Remove from cart error:", error);
+    res.status(500).json({ error: "Failed to remove item from cart" });
+  }
 });
 
 

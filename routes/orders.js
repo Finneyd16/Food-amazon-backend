@@ -5,71 +5,84 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
+const axios = require("axios");
 
 router.get("/get-all-orders", [auth, admin], async (req, res) => {
   const orders = await Order.find().sort("-createdAt");
   res.send(orders);
 });
 
-router.post("/create-order", async (req, res) => {
+
+
+router.post("/create", async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
+  let order = new Order(req.body);
 
-  const customer = await Customer.findById(req.body.customerId);
-  if (!customer) return res.status(400).send("Invalid customer.");
-
-  let orderItems = [];
-
-  for (let item of req.body.orderItems) {
-    const product = await Product.findById(item.productId);
-    if (!product)
-      return res.status(400).send(`Invalid product: ${item.productId}`);
-
-    if (!product.productInStock) {
-      return res.status(400).send(`Product ${product.name} is out of stock.`);
-    }
-
-    if (product.quantity < item.quantity) {
-      return res.status(400).send(
-          `Not enough stock for ${product.name}. Available: ${product.quantity}`
-        );
-    }
-
-    orderItems.push({
-      product: {
-        _id: product._id,
-        name: product.name,
-        price: product.price,
-        productImg: product.productImg,
-      },
-      quantity: item.quantity,
-    });
-
-    product.quantity -= item.quantity;
-    await product.save();
-  }
-
-  let order = new Order({
-    customer: {
-      _id: customer._id,
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
+  await order.save();
+  // Initialize Paystack
+  const response = await axios.post(
+    "https://api.paystack.co/transaction/initialize",
+    {
+      email: order.customerSnapshot.email,
+      name: order.customerSnapshot.name,
+      amount: order.totalAmount * 100, // in kobo
+      metadata: { orderId: order._id.toString() },
     },
-    orderItems: orderItems,
-    shippingAddress: req.body.shippingAddress,
-    orderNote: req.body.orderNote,
-    paymentMethod: req.body.paymentMethod,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+      },
+    }
+  );
+  // save reference
+  order.paymentReference = response.data.data.reference;
+  await order.save();
+  res.send({
+    orderId: order._id,
+    authorizationUrl: response.data.data.authorization_url,
+    reference: response.data.data.reference,
   });
 
-  order = await order.save();
 
-  // Update customer stats
-  customer.totalOrders += 1;
-  await customer.save();
 
-  res.send(order);
 });
+router.post("/confirm", async (req, res) => {
+  const { reference } = req.body;
+  const response = await axios.get(
+    `https://api.paystack.co/transaction/verify/${reference}`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+      },
+    }
+  );
+  const data = response.data.data;
+  if (data.status === "success") {
+    const order = await Order.findOneAndUpdate(
+      { paymentReference: reference },
+      { paymentStatus: "paid", transactionId: data.id },
+      { new: true }
+    );
+    return res.send({ success: true, order });
+  } else {
+    return res.status(400).send({ success: false, message: "Payment failed" });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 router.get("/get-single-order/:id", async (req, res) => {
   const order = await Order.findById(req.params.id);
@@ -150,29 +163,6 @@ router.get("/get-orders-by-status/:status", [auth, admin], async (req, res) => {
 });
 
 
-// POST /api/orders/confirm
-router.post('/confirm', async (req, res) => {
-    const { reference } = req.body;
-    const response = await axios.get(
-        `https://api.paystack.co/transaction/verify/${reference}`,
-        {
-            headers: {
-                Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
-            }
-        }
-    );
-    const data = response.data.data;
-    if (data.status === "success") {
-        const order = await Order.findOneAndUpdate(
-            { paymentReference: reference },
-            { paymentStatus: "paid", transactionId: data.id },
-            { new: true }
-        );
-        return res.send({ success: true, order });
-    } else {
-        return res.status(400).send({ success: false, message: "Payment failed" });
-    }
-});
 
 
 // POST /api/paystack/webhook

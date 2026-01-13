@@ -33,8 +33,9 @@ mongoose.connect("mongodb://localhost/fooddatabase")
 
 
 
-
+app.use(cors());
 app.use(express.json());
+
 app.use('/api/fooddocuments/categories', categories);
 app.use('/api/fooddocuments/products', products);
 app.use('/api/fooddocuments/customers', customers);
@@ -47,7 +48,7 @@ app.use('/api/fooddocuments/reviews',reviews);
 app.use('/api/fooddocuments/wishlists',wishlists);
 app.use('/api/fooddocuments/notifications',notifications);
 app.use ('/api/fooddocuments/dashboard',dashboard);
-app.use(cors());
+
 
 
 
