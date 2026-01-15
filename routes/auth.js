@@ -16,6 +16,7 @@ router.post('/register', async (req, res) => {
     user = new User({
         name: req.body.name,
         email: req.body.email,
+        number:req.body.number,
         password: req.body.password,
     });
 
@@ -36,14 +37,17 @@ router.post('/login', async (req, res) => {
   if (!user) return res.status(400).send("Invalid email or password.");
 
   const validPassword = await bcrypt.compare(req.body.password, user.password);
-  if (!validPassword) return res.status(400).send("Invalid email or password.");
+  if (!validPassword) return res.status(400).json({
+    status: "error",
+    message: "Invalid email or password."
+  });
 
   // Invalidate previous tokens
-  user.tokenVersion += 1;
-  await user.save();
+ user.tokenVersion += 1;
+await user.save({ validateModifiedOnly: true });
 
   const token = user.generateAuthToken();
-  res.send({ token: token });
+  res.send({ token: token, email: user.email, name: user.name});
 });
 
 module.exports = router;
