@@ -42,6 +42,10 @@ mongoose.connect("mongodb://localhost/fooddatabase")
 .catch(err => console.log(err,"connection failed"));
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 979ee2bfa3f9f86ff1a8d515143027089164fb2a
 app.use(cors());
 app.use(express.json());
 
@@ -57,6 +61,10 @@ app.use('/api/fooddocuments/reviews',reviews);
 app.use('/api/fooddocuments/wishlists',wishlists);
 app.use('/api/fooddocuments/notifications',notifications);
 app.use ('/api/fooddocuments/dashboard',dashboard);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 979ee2bfa3f9f86ff1a8d515143027089164fb2a
 
 
 
