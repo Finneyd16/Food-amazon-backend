@@ -23,24 +23,24 @@ router.get("/get-cart/:customerId", async (req, res) => {
 
 router.post("/add-to-cart", async (req, res) => {
   const { error } = validateCartItem(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+  if (error) return res.status(400).json({ message: error.details[0].message }); 
 
   const { customerId, productId, quantity } = req.body;
 
   const customer = await Customer.findById(customerId);
-  if (!customer) return res.status(400).send("Invalid customer.");
+  if (!customer) return res.status(400).json({ message: "Invalid customer." }); 
 
   const product = await Product.findById(productId);
-  if (!product) return res.status(400).send("Invalid product.");
+  if (!product) return res.status(400).json({ message: "Invalid product." }); 
 
   if (!product.productInStock) {
-    return res.status(400).send("Product is out of stock.");
+    return res.status(400).json({ message: "Product is out of stock." }); 
   }
 
   if (product.quantity < quantity) {
-    return res.status(400).send(
-      `Not enough stock. Available: ${product.quantity} ${product.unit}`
-    );
+    return res.status(400).json({ 
+      message: `Not enough stock. Available: ${product.quantity} ${product.unit}` 
+    }); // ✅ JSON
   }
 
   let cart = await Cart.findOne({ "customer._id": customerId });
@@ -61,10 +61,8 @@ router.post("/add-to-cart", async (req, res) => {
   );
 
   if (existingItemIndex > -1) {
-    // Update quantity only - subtotal calculated by pre-save
     cart.cartItems[existingItemIndex].quantity += quantity;
   } else {
-    // Add new item - subtotal calculated by pre-save
     cart.cartItems.push({
       product: {
         _id: product._id,
@@ -77,7 +75,7 @@ router.post("/add-to-cart", async (req, res) => {
   }
 
   cart = await cart.save(); 
-  res.send(cart);
+  res.json(cart); 
 });
 
 
