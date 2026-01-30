@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
-
 const orderItemSchema = new mongoose.Schema({
   productId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -15,8 +14,8 @@ const orderItemSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
+  // subTotal: Number,
 });
-
 const orderSchema = new mongoose.Schema({
   customerId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -24,26 +23,23 @@ const orderSchema = new mongoose.Schema({
     required: true,
   },
   customerSnapshot: {
-    name: String,  
-    emailAddress: String,  
-    phoneNumber: String,  
-    shippingAddress: { 
-      address: String,
-      city: String,
-      state: String,
-      zipCode: String,
-      country: String,
-      residence: String,
-    }
+    firstName: String,
+    lastName: String,
+    email: String,
+    address: String,
+    country: String,
+    state: String,
+    city: String,
+    zipCode: String,
+    phoneNumber: String,
+    orderNote: String,
   },
-  orderNote: String,  
   items: [orderItemSchema],
   totalAmount: {
     type: Number,
     required: true,
     default: 0,
   },
-  paymentMethod: String, 
   paymentStatus: {
     type: String,
     enum: ["pending", "paid", "failed", "refunded"],
@@ -54,8 +50,9 @@ const orderSchema = new mongoose.Schema({
     enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
     default: "pending",
   },
+  // Paystack integration fields
   paymentReference: {
-    type: String,
+    type: String, // Paystack's unique reference
     required: false,
   },
   paymentGateway: {
@@ -63,7 +60,7 @@ const orderSchema = new mongoose.Schema({
     default: "paystack",
   },
   transactionId: {
-    type: String,
+    type: String, // Paystack transaction id
   },
   createdAt: {
     type: Date,
@@ -74,8 +71,7 @@ const orderSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
-
-// Calculate total before saving
+// --- Calculate total before saving ---
 orderSchema.pre("save", function (next) {
   this.totalAmount = this.items.reduce(
     (acc, item) => acc + item.price * item.quantity,
@@ -84,29 +80,21 @@ orderSchema.pre("save", function (next) {
   this.updatedAt = new Date();
   next();
 });
-
 const Order = mongoose.model("Order", orderSchema);
-
-
+// --- Joi Validation ---
 function validateOrder(order) {
   const schema = Joi.object({
     customerId: Joi.string()
       .regex(/^[0-9a-fA-F]{24}$/)
       .required(),
     customerSnapshot: Joi.object().keys({
-      name: Joi.string().min(2).max(100).required(),
-      emailAddress: Joi.string().email().required(),
-      phoneNumber: Joi.string().min(5).max(20).required(),
-      shippingAddress: Joi.object().keys({
-        address: Joi.string().required(),
-        city: Joi.string().required(),
-        state: Joi.string().required(),
-        zipCode: Joi.string().required(),
-        country: Joi.string().required(),
-        residence: Joi.string().allow(""),
-      })
+      firstName: Joi.string().min(2).max(50).required(),
+      lastName: Joi.string().min(2).max(50).required(),
+      email: Joi.string().email().required(),
+      phone: Joi.string().min(5).max(11).required(),
+      state: Joi.string().required(),
+      city: Joi.string().required(),
     }),
-    orderNote: Joi.string().allow(""),
     items: Joi.array()
       .items(
         Joi.object({
@@ -114,15 +102,15 @@ function validateOrder(order) {
             .regex(/^[0-9a-fA-F]{24}$/)
             .required(),
           name: Joi.string().required(),
-          image: Joi.string().allow(""),
+          image: Joi.string().required(),
           price: Joi.number().required(),
           quantity: Joi.number().min(1).required(),
+          // subTotal: Joi.number(),
         })
       )
       .min(1)
       .required(),
     totalAmount: Joi.number(),
-    paymentMethod: Joi.string().allow(""),
     paymentStatus: Joi.string().valid("pending", "paid", "failed", "refunded"),
     deliveryStatus: Joi.string().valid(
       "pending",
@@ -139,6 +127,5 @@ function validateOrder(order) {
   });
   return schema.validate(order);
 }
-
 exports.Order = Order;
 exports.validate = validateOrder;
