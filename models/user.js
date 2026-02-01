@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
 
-  // ⭐ ADD THIS FIELD (NEW)
+  
   tokenVersion: {
     type: Number,
     default: 0,
