@@ -75,8 +75,8 @@ router.post("/login", async (req, res) => {
     return res.status(400).json({ message: "Invalid email or password." });
 
   // Invalidate previous tokens
-  user.tokenVersion += 1;
-  await user.save({ validateModifiedOnly: true });
+  // user.tokenVersion += 1;
+  // await user.save({ validateModifiedOnly: true });
 
   const token = user.generateAuthToken();
   res.json({

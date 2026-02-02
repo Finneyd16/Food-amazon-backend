@@ -6,6 +6,41 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 
+
+// GET ALL ORDERS
+router.get("/orders", [auth, admin], async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .populate('customer', 'name email')
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).send("Error fetching orders: " + err.message);
+  }
+});
+
+// GET ALL CUSTOMERS
+router.get("/customers", [auth, admin], async (req, res) => {
+  try {
+    const customers = await Customer.find()
+      .select('name email createdAt')
+      .sort({ createdAt: -1 });
+    res.json(customers);
+  } catch (err) {
+    res.status(500).send("Error fetching customers: " + err.message);
+  }
+});
+
+// GET ALL PRODUCTS 
+router.get("/products", [auth, admin], async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch (err) {
+    res.status(500).send("Error fetching products: " + err.message);
+  }
+});
+
 router.get("/overview", [auth, admin], async (req, res) => {
   try {
     const totalRevenue = await Order.aggregate([
@@ -132,7 +167,7 @@ router.get("/low-stock-alerts", [auth, admin], async (req, res) => {
 
 router.get("/recent-orders", [auth, admin], async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 50;
 
     const recentOrders = await Order.find()
       .sort("-createdAt")

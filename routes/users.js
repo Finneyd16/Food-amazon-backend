@@ -80,8 +80,8 @@ router.post("/login", async (req, res) => {
     if (!validPassword)
       return res.status(400).json({ message: "Invalid email or password." });
 
-    user.tokenVersion += 1;
-    await user.save({ validateModifiedOnly: true });
+    // user.tokenVersion += 1;
+    // await user.save({ validateModifiedOnly: true });
 
     const token = user.generateAuthToken();
 
@@ -167,7 +167,7 @@ router.post("/reset-password/:token", async (req, res) => {
 
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
-    user.tokenVersion += 1;
+    // user.tokenVersion += 1;
 
     await user.save();
 

@@ -22,42 +22,42 @@ const customerSchema = new mongoose.Schema(
     phone: {
       type: String,
       required: false,
-      maxLength: 20,  // ✅ Removed minLength
+      maxLength: 20,  
       trim: true,
       default: "",
     },
     address: {
       type: String,
       required: false,
-      maxLength: 255,  // ✅ Removed minLength
+      maxLength: 255,  
       trim: true,
       default: "",
     },
     country: {
       type: String,
       required: false,
-      maxLength: 100,  // ✅ Removed minLength
+      maxLength: 100,  
       trim: true,
       default: "",
     },
     city: {
       type: String,
       required: false,
-      maxLength: 100,  // ✅ Removed minLength
+      maxLength: 100,  
       trim: true,
       default: "",
     },
     state: {
       type: String,
       required: false,
-      maxLength: 100,  // ✅ Removed minLength
+      maxLength: 100,  
       trim: true,
       default: "",
     },
     zipCode: {
       type: String,
       required: false,
-      maxLength: 20,  // ✅ Removed minLength
+      maxLength: 20,  
       trim: true,
       default: "",
     },
@@ -82,7 +82,7 @@ const customerSchema = new mongoose.Schema(
     },
     forOrderNote: {
       type: String,
-      maxLength: 255,  // ✅ Removed minLength
+      maxLength: 255,  
       trim: true,
       default: "",
     },
@@ -98,12 +98,13 @@ function validateCustomer(customer) {
   const schema = Joi.object({
     name: Joi.string().min(3).max(100).required(),
     email: Joi.string().min(5).max(255).required().email(),
-    phone: Joi.string().max(20).allow(""),  // ✅ Made optional
-    address: Joi.string().max(255).allow(""),  // ✅ Made optional
-    country: Joi.string().max(100).allow(""),  // ✅ Made optional
-    city: Joi.string().max(100).allow(""),  // ✅ Made optional
-    state: Joi.string().max(100).allow(""),  // ✅ Made optional
-    zipCode: Joi.string().max(20).allow(""),  // ✅ Made optional
+    phone: Joi.string().max(20).allow(""),  
+    address: Joi.string().max(255).allow(""),
+    country: Joi.string().max(100).allow(""),
+    city: Joi.string().max(100).allow(""),  
+    state: Joi.string().max(100).allow(""),  
+    zipCode: Joi.string().max(20).allow(""), 
+    zipCode: Joi.string().max(20).allow(""), 
     profilePicture: Joi.string().allow(""),
     status: Joi.string().valid("Active", "Inactive"),
     forOrderNote: Joi.string().max(255).allow("", null),

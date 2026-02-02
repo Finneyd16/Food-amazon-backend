@@ -12,9 +12,9 @@ async function auth(req, res, next) {
     const user = await User.findById(decoded._id);
     if (!user) return res.status(400).send("Invalid token: user not found.");
 
-    if (decoded.tokenVersion !== user.tokenVersion) {
-      return res.status(401).send("Token expired. Please log in again.");
-    }
+    // if (decoded.tokenVersion !== user.tokenVersion) {
+    //   return res.status(401).send("Token expired. Please log in again.");
+    // }
 
     req.user = {
       _id: user._id,
