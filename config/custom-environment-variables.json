@@ -1,4 +1,5 @@
 {
-    "jwtPrivateKey":"food_jwtPrivateKey"
-    
+  "jwtPrivateKey": "jwtPrivateKey",
+  "paystackSecretKey": "sk_test_63598dff0ba5f93097df9d3ea46d011c392ac26d",
+  "port": "PORT"
 }
