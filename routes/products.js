@@ -126,4 +126,12 @@ router.get("/get-products-by-category/:categoryId", async (req, res) => {
   res.send(products);
 });
 
+
+
+
+
+
+
+
+
 module.exports = router;

@@ -178,6 +178,7 @@ async function sendLowStockAlert(adminId, productData) {
   await notification.save();
 }
 
+
 module.exports = router;
 module.exports.sendOrderNotification = sendOrderNotification;
 module.exports.sendLowStockAlert = sendLowStockAlert;
