@@ -1,22 +1,10 @@
-require ('dotenv').config();
+require('dotenv').config();
 
 const express = require('express');
 const app = express();
 const cors = require('cors');
-
-app.get('/', (req, res) => {
-    res.send('Food API is running!');
-});
-
-
-
-
 const mongoose = require('mongoose');
 const config = require('config');
-
-
-
-
 
 const categories = require('./routes/categories');
 const products = require('./routes/products');
@@ -31,23 +19,22 @@ const wishlists = require('./routes/wishlists');
 const notifications = require('./routes/notifications');
 const dashboard = require('./routes/dashboard');
 
-
-
-
-
 if (!config.get('jwtPrivateKey')){
     console.error("FATAL ERROR: jwtPrivateKey is not defined.");
     process.exit(1);
 }
 
+// Connect to MongoDB Atlas
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ Connected to MongoDB Atlas..."))
+  .catch(err => {
+    console.error("MongoDB connection failed:", err.message);
+    process.exit(1);
+  });
 
-
-
-mongoose.connect("mongodb://localhost/fooddatabase")
-.then(() => console.log("Connected to fooddatabase..."))
-.catch(err => console.log(err,"connection failed"));
-
-
+app.get('/', (req, res) => {
+    res.send('Food API is running!');
+});
 
 app.use(cors());
 app.use(express.json());
@@ -59,18 +46,11 @@ app.use('/api/fooddocuments/users', users);
 app.use('/api/fooddocuments/auth', auth);
 app.use('/api/fooddocuments/orders', orders);
 app.use('/api/fooddocuments/coupons', coupons);
-app.use('/api/fooddocuments/carts',carts);
-app.use('/api/fooddocuments/reviews',reviews);
-app.use('/api/fooddocuments/wishlists',wishlists);
-app.use('/api/fooddocuments/notifications',notifications);
-app.use ('/api/fooddocuments/dashboard',dashboard);
-
-
-
-
-
-
-
+app.use('/api/fooddocuments/carts', carts);
+app.use('/api/fooddocuments/reviews', reviews);
+app.use('/api/fooddocuments/wishlists', wishlists);
+app.use('/api/fooddocuments/notifications', notifications);
+app.use('/api/fooddocuments/dashboard', dashboard);
 
 const port = process.env.PORT || 3001;
-app.listen(port, console.log(`listening on port ${port}...`));
+app.listen(port, () => console.log(`Listening on port ${port}...`));
