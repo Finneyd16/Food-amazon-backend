@@ -36,7 +36,10 @@ app.get('/', (req, res) => {
     res.send('Food API is running!');
 });
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://food-amazon-ecommerce.vercel.app',
+  credentials: true
+}));
 app.use(express.json());
 
 app.use('/api/fooddocuments/categories', categories);
